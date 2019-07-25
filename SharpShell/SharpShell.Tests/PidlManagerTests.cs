@@ -36,7 +36,8 @@ namespace SharpShell.Tests
                 out pidl);
             var displayName = PidlManager.GetPidlDisplayName(pidl);
             Shell32.ILFree(pidl);
-            Assert.AreEqual(displayName, "Documents");
+            string expectedName = GetTestKnownFolderDisplayNameForMyCulture();
+            Assert.AreEqual(expectedName, displayName);
         }
 
         [Test]
@@ -50,7 +51,8 @@ namespace SharpShell.Tests
             pidl = PidlManager.IdListToPidl(idList);
             var pszPath = new StringBuilder();
             var displayName = PidlManager.GetPidlDisplayName(pidl);
-            Assert.AreEqual(displayName, "Documents");
+            string expectedName = GetTestKnownFolderDisplayNameForMyCulture();
+            Assert.AreEqual(expectedName, displayName);
         }
 
         [Test]
@@ -60,7 +62,7 @@ namespace SharpShell.Tests
             Shell32.SHGetKnownFolderIDList(KnownFolders.FOLDERID_Downloads, KNOWN_FOLDER_FLAG.KF_NO_FLAGS, IntPtr.Zero,
                 out pidl);
             var idList = PidlManager.PidlToIdlist(pidl);
-            Assert.AreEqual(idList.Ids.Count, 4);
+            Assert.That(idList.Ids.Count, Is.GreaterThan(1));
         }
 
         [Test]
@@ -75,5 +77,32 @@ namespace SharpShell.Tests
             
             Assert.IsTrue(idList.Matches(idList2));
         }
+
+        #region Private Helper Methods 
+            
+        /// <summary>
+        /// Name of installed UI Culture, ISO 639-2T.
+        /// </summary>
+        private readonly string InstalledUICultureISOName = System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+
+        /// <summary>
+        /// Returns the expected DisplayName of the common test Known-Folder.
+        /// Supports different installed UI Cultures.
+        /// </summary>
+        /// <returns>Expected DisplayName of the common test Known-Folder.</returns>
+        private string GetTestKnownFolderDisplayNameForMyCulture()
+        {
+            switch (InstalledUICultureISOName)
+            {
+                case "de":
+                    return "Dokumente";
+                case "en":
+                    return "Documents";
+                default:
+                    throw new Exception($"Unknwon ISO UI Culture, new case needed for '{InstalledUICultureISOName}'.");
+            }
+        }
+
+        #endregion
     }
 }
